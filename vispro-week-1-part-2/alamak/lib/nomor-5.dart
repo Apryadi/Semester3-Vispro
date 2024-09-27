@@ -2,28 +2,22 @@ import 'dart:io';
 
 void main() {
   // Tarif parkir
-  const int tarifDuaJamPertama = 2000; // Rp 2.000 untuk 2 jam pertama
-  const int tarifSetelahDuaJam = 1000;  // Rp 1.000 untuk setiap jam berikutnya
+  const int tarifAwal = 2000; // Tarif untuk 2 jam pertama (per jam)
+  const int tarifTambahan = 1000; // Tarif untuk setiap jam berikutnya
 
-  // Meminta input jumlah jam parkir dari pengguna
-  print("Masukkan jumlah jam parkir: ");
-  String? input = stdin.readLineSync();
-
-  // Mengonversi input menjadi int
-  int jamParkir = int.parse(input!);
+  // Meminta input jumlah jam parkir
+  stdout.write('Masukkan jumlah jam parkir: ');
+  String? inputJamParkir = stdin.readLineSync();
+  int jamParkir = int.parse(inputJamParkir!);
 
   // Menghitung total biaya parkir
-  int totalBiaya = 0;
-
+  int totalBiaya;
   if (jamParkir <= 2) {
-    totalBiaya = tarifDuaJamPertama;
+    totalBiaya = jamParkir * tarifAwal;
   } else {
-    // Biaya untuk 2 jam pertama
-    totalBiaya = tarifDuaJamPertama;
-    // Menambahkan biaya untuk jam setelah 2 jam
-    totalBiaya += (jamParkir - 2) * tarifSetelahDuaJam;
+    totalBiaya = (2 * tarifAwal) + ((jamParkir - 2) * tarifTambahan);
   }
 
   // Menampilkan total biaya parkir
-  print("Total biaya parkir untuk $jamParkir jam adalah Rp $totalBiaya");
+  stdout.write('Total biaya parkir untuk $jamParkir jam adalah Rp $totalBiaya');
 }

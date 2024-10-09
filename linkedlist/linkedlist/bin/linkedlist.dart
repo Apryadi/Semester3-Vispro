@@ -1,5 +1,6 @@
 import 'dart:io'; // Import library untuk input/output
 import 'dart:async';
+import 'dart:math'; // Untuk fungsi random pada warna
 
 class Node {
   String? data; // Data yang disimpan dalam node, nullable untuk keamanan jika tidak ada data
@@ -16,7 +17,7 @@ void moveTo(int row, int col) {
   stdout.write('\x1B[${row};${col}H');
 }
 
-getScreenSize() {
+List<int> getScreenSize() {
   return [stdout.terminalColumns, stdout.terminalLines];
 }
 
@@ -32,39 +33,27 @@ Node insertNodeAtPosition(Node head, Node newNode, int position) {
     return newNode;
   }
 
-  // Mulai dari head untuk mencari posisi yang diinginkan
   Node? currentNode = head;
   int i = 1;
   if (position != 0) {
     while (currentNode!.next != null && i < position - 1) {
-      currentNode = currentNode.next; // Traverse ke posisi sebelumnya
+      currentNode = currentNode.next;
       i++;
     }
   } else {
     while (currentNode!.next != null) {
-      currentNode = currentNode.next; // Traverse ke posisi sebelumnya
+      currentNode = currentNode.next;
       i++;
     }
   }
 
-  // Sisipkan node baru di posisi yang ditarget
   newNode.next = currentNode.next;
   currentNode.next = newNode;
 
   return head; // Mengembalikan head yang baru
 }
 
-// Fungsi untuk membentuk Linked List berdasarkan input dari pengguna
-Node craft(String userInput) {
-  Node head = Node(userInput[0]);
-  for (int i = 1; i < userInput.length; i++) {
-    insertNodeAtPosition(head, Node(userInput[i]), 0);
-  }
-  activateLoop(head);
-  return head;
-}
-
-// Fungsi untuk menciptakan loop pada akhir linked list, agar terus berulang
+// Fungsi untuk menciptakan loop pada akhir linked list
 Node activateLoop(Node head) {
   Node? currentNode = head;
   while (currentNode!.next != null) {
@@ -74,14 +63,39 @@ Node activateLoop(Node head) {
   return head;
 }
 
-Node? getNext(Node node) {
-  return node.next;
+// Fungsi untuk mendapatkan warna acak
+String getRandomColor(String currentColor) {
+  const String RESET = '\x1B[0m';
+  const String RED = '\x1B[31m';
+  const String GREEN = '\x1B[32m';
+  const String YELLOW = '\x1B[33m';
+  const String BLUE = '\x1B[34m';
+  const String MAGENTA = '\x1B[35m';
+  const String CYAN = '\x1B[36m';
+
+  const List<String> colors = [RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN];
+  Random random = Random();
+  String newColor;
+
+  do {
+    newColor = colors[random.nextInt(colors.length)];
+  } while (newColor == currentColor); // Memastikan warna baru berbeda dengan warna sebelumnya
+
+  return newColor;
 }
 
-// Fungsi untuk merotasi warna teks
-String getColor(int row) {
-  List<String> colors = ['\x1B[31m', '\x1B[32m', '\x1B[33m', '\x1B[34m'];
-  return colors[(row - 20) % colors.length]; // Ganti warna setiap baris setelah 20
+// Fungsi untuk membuat linked list dari inputan pengguna
+Node craft(String userInput) {
+  Node head = Node(userInput[0]);
+  for (int i = 1; i < userInput.length; i++) {
+    insertNodeAtPosition(head, Node(userInput[i]), 0);
+  }
+  activateLoop(head);
+  return head;
+}
+
+Node? getNext(Node node) {
+  return node.next;
 }
 
 void main() async {
@@ -95,42 +109,40 @@ void main() async {
     return;
   }
 
-  // Membuat linked list berdasarkan nama pengguna
   Node head = craft(userName);
   clearScreen();
-  Node? node = null;
+  String selectedColor = '\x1B[0m'; // Inisialisasi dengan warna default
 
-  int maxRows = 20; // Batas maksimal baris
-  int screenWidth = getScreenSize()[0]; // Lebar layar terminal
+  // Infinite loop untuk mengubah warna teks dan merefresh tampilan
+  while (true) {
+    Node? node = null;
+    selectedColor = getRandomColor(selectedColor); // Update warna pada setiap iterasi
+    stdout.write(selectedColor); // Terapkan warna pada output terminal
 
-  // Loop untuk menampilkan output di terminal hingga maksimal 20 baris
-  for (int j = 1; j <= getScreenSize()[1]; j++) {
-    if (node == null) {
-      node = head;
-    }
-
-    // Cek apakah baris sudah melewati batas 20
-    if (j > maxRows) {
-      stdout.write(getColor(j)); // Ubah warna jika baris lebih dari 20
-    }
-
-    if (j % 2 != 0) {
-      for (int i = 1; i <= screenWidth; i++) {
-        moveTo(j, i);
-        stdout.write(node!.data);
-        node = getNext(node)!;
-        await delay(10);
+    // Loop untuk menampilkan linked list di terminal
+    for (int j = 1; j <= getScreenSize()[1]; j++) {
+      if (node == null) {
+        node = head;
       }
-    } else {
-      for (int i = screenWidth; i > 0; i--) {
-        moveTo(j, i);
-        stdout.write(node!.data);
-        node = getNext(node)!;
-        await delay(10);
+
+      if (j % 2 != 0) {
+        for (int i = 1; i <= getScreenSize()[0]; i++) {
+          moveTo(j, i);
+          stdout.write(node!.data);
+          node = getNext(node)!;
+          await delay(10);
+        }
+      } else {
+        for (int i = getScreenSize()[0]; i > 0; i--) {
+          moveTo(j, i);
+          stdout.write(node!.data);
+          node = getNext(node)!;
+          await delay(10);
+        }
       }
     }
 
-    // Reset warna ke default setelah selesai menulis satu baris
+    // Reset warna setelah setiap refresh layar
     stdout.write('\x1B[0m');
   }
 }

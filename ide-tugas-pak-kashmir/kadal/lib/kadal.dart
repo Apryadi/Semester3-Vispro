@@ -169,7 +169,7 @@ class KadalGame {
         }
       }
       
-      // Jika ada setidaknya satu gerakan valid setelah ini, pilih gerakan ini
+      // Jika ada setidaknya satu gerakan valid setelah gerakan ini, pilih gerakan ini
       if (futureValidMoves.isNotEmpty) {
         currentDirection = newDir;
         return move;
@@ -198,6 +198,12 @@ class KadalGame {
       kadal.removeLast();
     }
 
+    // Cek tabrakan dengan diri sendiri
+    if (kadal.skip(1).any((segment) => segment == nextPosition)) {
+      print('Gagal! Kadal menabrak dirinya sendiri!');
+      exit(0); // Hentikan permainan
+    }
+
     if (score > highScore) {
       highScore = score;
     }
@@ -213,7 +219,7 @@ class KadalGame {
         final point = Point(x, y);
         if (kadal.any((segment) => segment.x == x && segment.y == y)) {
           if (point == kadal.first) {
-            stdout.write(':3'); // Kepala kadal
+            stdout.write('0'); // Kepala kadal
           } else {
             // Tambahkan kaki di sekitar badan
             Point leftLeg = Point(point.x - 1, point.y);  // Kaki kiri
